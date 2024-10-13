@@ -19,6 +19,7 @@ def main():
     payment_strategy = PokerPaymentStrategy()
 
     for payment in payment_strategy.calculate_payments(players):
+        payment.amount /= PokerConfig.CHIPS_PER_MONEY
         print(payment)
 
 
