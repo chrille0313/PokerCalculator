@@ -1,5 +1,5 @@
 from src.util import PokerPlayer
-from src.payment_strategies import PokerPaymentStrategy
+from src.payment_strategies import PokerPaymentStrategy, GreedyPokerPaymentStrategy
 
 
 class PokerConfig:
@@ -16,9 +16,9 @@ def main():
         PokerPlayer("Edward", 300 * PokerConfig.CHIPS_PER_MONEY, 0)
     ]
 
-    payment_strategy = PokerPaymentStrategy()
+    payment_strategy: PokerPaymentStrategy = GreedyPokerPaymentStrategy()
 
-    for payment in payment_strategy.calculate_payments(players):
+    for payment in payment_strategy.get_payments(players):
         payment.amount /= PokerConfig.CHIPS_PER_MONEY
         print(payment)
 
