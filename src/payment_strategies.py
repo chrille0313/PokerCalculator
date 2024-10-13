@@ -35,6 +35,7 @@ class GreedyPokerPaymentStrategy(PokerPaymentStrategy):
     def calculate_payments(self, players: list[PokerPlayer]) -> list[Payment]:
         payers = sorted((player for player in players if self.is_payer(player)), key=lambda player: player.calculate_profit())
         receivers = sorted((player for player in players if self.is_receiver(player)), key=lambda player: player.calculate_profit(), reverse=True)
+        total_remaining_debt = sum(abs(player.calculate_profit()) for player in payers)
 
         payments = []
 
@@ -50,8 +51,9 @@ class GreedyPokerPaymentStrategy(PokerPaymentStrategy):
 
                 remaining_payer_debt -= pay_amount
                 current_receiver_debt -= pay_amount
+                total_remaining_debt -= pay_amount
 
-                if current_receiver_debt == 0:
+                if current_receiver_debt == 0 and total_remaining_debt > 0:
                     if len(receivers) == 0:
                         raise ValueError(f"Not enough receivers to pay off all debts")
 
