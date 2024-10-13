@@ -21,3 +21,44 @@ class PokerPaymentStrategy(ABC):
     def get_payments(self, players: list[PokerPlayer]) -> list[Payment]:
         self.check_chips(players)
         return self.calculate_payments(players)
+
+
+class GreedyPokerPaymentStrategy(PokerPaymentStrategy):
+    @staticmethod
+    def is_payer(player: PokerPlayer) -> bool:
+        return player.calculate_profit() < 0
+
+    @staticmethod
+    def is_receiver(player: PokerPlayer) -> bool:
+        return player.calculate_profit() > 0
+
+    def calculate_payments(self, players: list[PokerPlayer]) -> list[Payment]:
+        payers = sorted((player for player in players if self.is_payer(player)), key=lambda player: player.calculate_profit())
+        receivers = sorted((player for player in players if self.is_receiver(player)), key=lambda player: player.calculate_profit(), reverse=True)
+
+        payments = []
+
+        current_receiver = receivers.pop(0)
+        current_receiver_debt = current_receiver.calculate_profit()
+
+        for payer in payers:
+            remaining_payer_debt = abs(payer.calculate_profit())
+
+            while remaining_payer_debt > 0:
+                pay_amount = min(remaining_payer_debt, current_receiver_debt)
+                payments.append(Payment(payer, current_receiver, pay_amount))
+
+                remaining_payer_debt -= pay_amount
+                current_receiver_debt -= pay_amount
+
+                if current_receiver_debt == 0:
+                    if len(receivers) == 0:
+                        raise ValueError(f"Not enough receivers to pay off all debts")
+
+                    current_receiver = receivers.pop(0)
+                    current_receiver_debt = current_receiver.calculate_profit()
+
+        if len(receivers) > 0:
+            raise ValueError(f"Not all debts could be paid off (too many receivers)")
+
+        return payments
